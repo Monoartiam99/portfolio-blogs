@@ -1,0 +1,6 @@
+{
+  "name": "Monojit Nandy — Portfolio & Journal",
+  "description": "A curatorial portfolio and editorial engineering journal by Monojit Nandy with long-form essays, audio narration, and reader discussions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

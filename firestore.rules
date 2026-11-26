@@ -1,0 +1,243 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Global Hardened Primitives ---
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isBootstrappedAdmin() {
+      return isVerifiedUser() && request.auth.token.email == 'monojitnandy20052023lp@gmail.com';
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() || (isVerifiedUser() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+
+    // --- Validation Blueprints ---
+    function isValidPost(data) {
+      return data.keys().hasAll([
+          'title', 'slug', 'excerpt', 'content', 'category',
+          'coverImageUrl', 'coverCaption', 'readingMinutes',
+          'status', 'featured', 'authorId', 'authorName',
+          'commentCount', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'title', 'slug', 'excerpt', 'content', 'category',
+          'coverImageUrl', 'coverCaption', 'readingMinutes',
+          'status', 'featured', 'authorId', 'authorName',
+          'commentCount', 'createdAt', 'updatedAt'
+        ])
+        && data.title is string && data.title.size() >= 3 && data.title.size() <= 140
+        && data.slug is string && data.slug.size() >= 3 && data.slug.size() <= 120 && data.slug.matches('^[a-z0-9]+(?:-[a-z0-9]+)*$')
+        && data.excerpt is string && data.excerpt.size() >= 10 && data.excerpt.size() <= 360
+        && data.content is string && data.content.size() >= 20 && data.content.size() <= 40000
+        && data.category in ['Engineering', 'Design', 'Systems', 'Architecture', 'Notes']
+        && data.coverImageUrl is string && data.coverImageUrl.size() >= 1 && data.coverImageUrl.size() <= 500
+        && data.coverCaption is string && data.coverCaption.size() <= 200
+        && data.readingMinutes is int && data.readingMinutes >= 1 && data.readingMinutes <= 120
+        && data.status in ['draft', 'published']
+        && data.featured is bool
+        && data.authorId is string && isValidId(data.authorId)
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
+        && data.commentCount is int && data.commentCount >= 0
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidComment(data) {
+      return data.keys().hasAll([
+          'postId', 'authorId', 'authorName', 'authorPhotoUrl',
+          'isAuthorReply', 'body', 'isPublic', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'postId', 'authorId', 'authorName', 'authorPhotoUrl',
+          'isAuthorReply', 'body', 'isPublic', 'createdAt', 'updatedAt'
+        ])
+        && data.postId is string && isValidId(data.postId)
+        && data.authorId is string && isValidId(data.authorId)
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
+        && data.authorPhotoUrl is string && data.authorPhotoUrl.size() <= 500
+        && data.isAuthorReply is bool
+        && data.body is string && data.body.size() >= 2 && data.body.size() <= 2000
+        && data.isPublic is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidWork(data) {
+      return data.keys().hasAll([
+          'title', 'discipline', 'year', 'summary', 'outcome',
+          'linkUrl', 'orderIndex', 'authorId', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'title', 'discipline', 'year', 'summary', 'outcome',
+          'linkUrl', 'orderIndex', 'authorId', 'createdAt', 'updatedAt'
+        ])
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 100
+        && data.discipline is string && data.discipline.size() >= 2 && data.discipline.size() <= 60
+        && data.year is string && data.year.size() == 4 && data.year.matches('^[0-9]{4}$')
+        && data.summary is string && data.summary.size() >= 10 && data.summary.size() <= 320
+        && data.outcome is string && data.outcome.size() >= 4 && data.outcome.size() <= 120
+        && data.linkUrl is string && data.linkUrl.size() <= 300
+        && data.orderIndex is int && data.orderIndex >= 0 && data.orderIndex <= 1000
+        && data.authorId is string && isValidId(data.authorId)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidProfile(data) {
+      return data.keys().hasAll([
+          'displayName', 'role', 'headline', 'bio', 'location',
+          'avatarUrl', 'githubUrl', 'linkedinUrl', 'websiteUrl',
+          'updatedBy', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'displayName', 'role', 'headline', 'bio', 'location',
+          'avatarUrl', 'githubUrl', 'linkedinUrl', 'websiteUrl',
+          'updatedBy', 'updatedAt'
+        ])
+        && data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 80
+        && data.role is string && data.role.size() >= 2 && data.role.size() <= 100
+        && data.headline is string && data.headline.size() >= 10 && data.headline.size() <= 220
+        && data.bio is string && data.bio.size() >= 20 && data.bio.size() <= 1200
+        && data.location is string && data.location.size() >= 2 && data.location.size() <= 80
+        && data.avatarUrl is string && data.avatarUrl.size() >= 1 && data.avatarUrl.size() <= 500
+        && data.githubUrl is string && data.githubUrl.size() <= 300
+        && data.linkedinUrl is string && data.linkedinUrl.size() <= 300
+        && data.websiteUrl is string && data.websiteUrl.size() <= 300
+        && data.updatedBy is string && isValidId(data.updatedBy)
+        && data.updatedAt is timestamp;
+    }
+
+    // --- Collection Rules ---
+    match /admins/{uid} {
+      allow get: if isValidId(uid) && isSignedIn() && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+
+    match /profile/{profileId} {
+      allow get: if isValidId(profileId);
+      allow list: if false;
+      allow create: if isAdmin()
+        && isValidId(profileId)
+        && isValidProfile(incoming())
+        && incoming().updatedBy == request.auth.uid
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(profileId)
+        && isValidProfile(incoming())
+        && incoming().updatedBy == request.auth.uid
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'displayName', 'role', 'headline', 'bio', 'location',
+          'avatarUrl', 'githubUrl', 'linkedinUrl', 'websiteUrl',
+          'updatedBy', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+
+    match /works/{workId} {
+      allow get: if isValidId(workId);
+      allow list: if resource.data.orderIndex >= 0;
+      allow create: if isAdmin()
+        && isValidId(workId)
+        && isValidWork(incoming())
+        && incoming().authorId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(workId)
+        && isValidWork(incoming())
+        && incoming().authorId == existing().authorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'discipline', 'year', 'summary', 'outcome',
+          'linkUrl', 'orderIndex', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(workId);
+    }
+
+    match /posts/{postId} {
+      allow get: if isValidId(postId) && (existing().status == 'published' || isAdmin());
+      allow list: if existing().status == 'published'
+        || isBootstrappedAdmin()
+        || (isVerifiedUser() && existing().authorId == request.auth.uid);
+      allow create: if isAdmin()
+        && isValidId(postId)
+        && isValidPost(incoming())
+        && incoming().authorId == request.auth.uid
+        && incoming().commentCount == 0
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(postId)
+        && isValidPost(incoming())
+        && incoming().authorId == existing().authorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'slug', 'excerpt', 'content', 'category',
+          'coverImageUrl', 'coverCaption', 'readingMinutes',
+          'status', 'featured', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(postId);
+
+      match /comments/{commentId} {
+        allow get: if isValidId(postId) && isValidId(commentId) && existing().isPublic == true;
+        allow list: if existing().isPublic == true;
+        allow create: if isVerifiedUser()
+          && isValidId(postId)
+          && isValidId(commentId)
+          && isValidComment(incoming())
+          && incoming().postId == postId
+          && incoming().authorId == request.auth.uid
+          && incoming().isPublic == true
+          && (incoming().isAuthorReply == false || isAdmin())
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && exists(/databases/$(database)/documents/posts/$(postId))
+          && get(/databases/$(database)/documents/posts/$(postId)).data.status == 'published';
+        allow update: if isVerifiedUser()
+          && isValidId(postId)
+          && isValidId(commentId)
+          && isValidComment(incoming())
+          && incoming().postId == existing().postId
+          && incoming().authorId == existing().authorId
+          && incoming().createdAt == existing().createdAt
+          && incoming().isAuthorReply == existing().isAuthorReply
+          && incoming().isPublic == existing().isPublic
+          && incoming().updatedAt == request.time
+          && (isAdmin() || existing().authorId == request.auth.uid)
+          && incoming().diff(existing()).affectedKeys().hasOnly(['body', 'updatedAt']);
+        allow delete: if isVerifiedUser()
+          && isValidId(postId)
+          && isValidId(commentId)
+          && (isAdmin() || existing().authorId == request.auth.uid);
+      }
+    }
+  }
+}

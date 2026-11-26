@@ -1,0 +1,379 @@
+{
+  "entities": {
+    "Post": {
+      "title": "Post",
+      "description": "A portfolio blog article authored by the site owner.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Article headline.",
+          "minLength": 3,
+          "maxLength": 140
+        },
+        "slug": {
+          "type": "string",
+          "description": "URL-friendly unique slug.",
+          "minLength": 3,
+          "maxLength": 120,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "excerpt": {
+          "type": "string",
+          "description": "Short editorial deck or summary.",
+          "minLength": 10,
+          "maxLength": 360
+        },
+        "content": {
+          "type": "string",
+          "description": "Full Markdown article body.",
+          "minLength": 20,
+          "maxLength": 40000
+        },
+        "category": {
+          "type": "string",
+          "description": "Editorial section category.",
+          "enum": ["Engineering", "Design", "Systems", "Architecture", "Notes"]
+        },
+        "coverImageUrl": {
+          "type": "string",
+          "description": "Path or URL to the article cover image.",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "coverCaption": {
+          "type": "string",
+          "description": "Editorial figure caption for the cover image.",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "readingMinutes": {
+          "type": "integer",
+          "description": "Estimated reading duration in minutes."
+        },
+        "status": {
+          "type": "string",
+          "description": "Publication visibility status.",
+          "enum": ["draft", "published"]
+        },
+        "featured": {
+          "type": "boolean",
+          "description": "Whether the article is highlighted as the lead feature."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "UID of the author.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Display name of the author.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "commentCount": {
+          "type": "integer",
+          "description": "Cached count of comments on the article."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the post was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the post was last updated."
+        }
+      },
+      "required": [
+        "title",
+        "slug",
+        "excerpt",
+        "content",
+        "category",
+        "coverImageUrl",
+        "coverCaption",
+        "readingMinutes",
+        "status",
+        "featured",
+        "authorId",
+        "authorName",
+        "commentCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A reader comment attached to a published blog post.",
+      "type": "object",
+      "properties": {
+        "postId": {
+          "type": "string",
+          "description": "Parent post document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorId": {
+          "type": "string",
+          "description": "Authenticated commenter UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Public display name of the commenter.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "authorPhotoUrl": {
+          "type": "string",
+          "description": "Optional public avatar URL.",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "isAuthorReply": {
+          "type": "boolean",
+          "description": "Whether this comment was written by the portfolio owner."
+        },
+        "body": {
+          "type": "string",
+          "description": "Comment text content.",
+          "minLength": 2,
+          "maxLength": 2000
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Public visibility flag for list query enforcement."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the comment was posted."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the comment was last edited."
+        }
+      },
+      "required": [
+        "postId",
+        "authorId",
+        "authorName",
+        "authorPhotoUrl",
+        "isAuthorReply",
+        "body",
+        "isPublic",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Work": {
+      "title": "Work",
+      "description": "A selected portfolio project or case study.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Project title.",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "discipline": {
+          "type": "string",
+          "description": "Primary craft or engineering discipline.",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "year": {
+          "type": "string",
+          "description": "Four-digit release year.",
+          "minLength": 4,
+          "maxLength": 4,
+          "pattern": "^[0-9]{4}$"
+        },
+        "summary": {
+          "type": "string",
+          "description": "Concise architectural summary of the work.",
+          "minLength": 10,
+          "maxLength": 320
+        },
+        "outcome": {
+          "type": "string",
+          "description": "Concrete measured impact or outcome.",
+          "minLength": 4,
+          "maxLength": 120
+        },
+        "linkUrl": {
+          "type": "string",
+          "description": "Optional external case study or repository URL.",
+          "minLength": 0,
+          "maxLength": 300
+        },
+        "orderIndex": {
+          "type": "integer",
+          "description": "Display sort order."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "Owner UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "title",
+        "discipline",
+        "year",
+        "summary",
+        "outcome",
+        "linkUrl",
+        "orderIndex",
+        "authorId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Profile": {
+      "title": "Profile",
+      "description": "Public portfolio identity and biography for the blog owner.",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "Author full name.",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "role": {
+          "type": "string",
+          "description": "Professional title.",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "headline": {
+          "type": "string",
+          "description": "Editorial masthead statement.",
+          "minLength": 10,
+          "maxLength": 220
+        },
+        "bio": {
+          "type": "string",
+          "description": "Short biography paragraph.",
+          "minLength": 20,
+          "maxLength": 1200
+        },
+        "location": {
+          "type": "string",
+          "description": "City or region.",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "Portrait image path or URL.",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "githubUrl": {
+          "type": "string",
+          "description": "Public GitHub profile URL.",
+          "minLength": 0,
+          "maxLength": 300
+        },
+        "linkedinUrl": {
+          "type": "string",
+          "description": "Public LinkedIn profile URL.",
+          "minLength": 0,
+          "maxLength": 300
+        },
+        "websiteUrl": {
+          "type": "string",
+          "description": "Personal site URL.",
+          "minLength": 0,
+          "maxLength": 300
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "Admin UID who updated the profile.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of update."
+        }
+      },
+      "required": [
+        "displayName",
+        "role",
+        "headline",
+        "bio",
+        "location",
+        "avatarUrl",
+        "githubUrl",
+        "linkedinUrl",
+        "websiteUrl",
+        "updatedBy",
+        "updatedAt"
+      ]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Trusted administrator marker document.",
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": ["admin"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["role", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/posts/{postId}": {
+      "schema": { "$ref": "#/entities/Post" },
+      "description": "Portfolio blog articles (published readable by all; drafts and writes restricted to admin)."
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Reader comments on published blog articles."
+    },
+    "/works/{workId}": {
+      "schema": { "$ref": "#/entities/Work" },
+      "description": "Selected portfolio works and case studies."
+    },
+    "/profile/{profileId}": {
+      "schema": { "$ref": "#/entities/Profile" },
+      "description": "Public portfolio owner profile metadata."
+    },
+    "/admins/{uid}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Admin role documents."
+    }
+  }
+}
